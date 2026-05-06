@@ -229,15 +229,19 @@ function renderRecentCities() {
 
 // Clears all weather output blocks after failed requests.
 function clearWeatherOutput() {
+  resetCurrentWeatherFields();
+  weatherIcon.classList.add("hidden");
+  extremeAlert.classList.add("hidden");
+  lastWeatherData = null;
+  renderForecastCards([]);
+}
+
+function resetCurrentWeatherFields() {
   cityOutput.textContent = "--";
   conditionOutput.textContent = "--";
   tempOutput.textContent = "--";
   humidityOutput.textContent = "--";
   windOutput.textContent = "--";
-  weatherIcon.classList.add("hidden");
-  extremeAlert.classList.add("hidden");
-  lastWeatherData = null;
-  renderForecastCards([]);
 }
 
 async function fetchWeatherByCity(city) {
