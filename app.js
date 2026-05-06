@@ -1,5 +1,6 @@
 const API_KEY = window.WEATHER_API_KEY || "";
 const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
+const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
 const RECENT_CITIES_KEY = "recentWeatherCities";
 const BASE_BODY_CLASS = "min-h-screen text-slate-900";
 
@@ -10,6 +11,7 @@ const locationBtn = document.getElementById("current-location-btn");
 const recentWrapper = document.getElementById("recent-wrapper");
 const recentCitiesSelect = document.getElementById("recent-cities");
 const appBody = document.getElementById("app-body");
+const forecastCards = document.getElementById("forecast-cards");
 
 const cityOutput = document.getElementById("result-city");
 const conditionOutput = document.getElementById("result-condition");
@@ -166,6 +168,7 @@ function clearWeatherOutput() {
   weatherIcon.classList.add("hidden");
   extremeAlert.classList.add("hidden");
   lastWeatherData = null;
+  renderForecastCards([]);
 }
 
 async function fetchWeatherByCity(city) {
@@ -192,6 +195,89 @@ async function fetchWeatherByCoordinates(lat, lon) {
   return data;
 }
 
+async function fetchForecastByCity(city) {
+  const url = `${FORECAST_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (!response.ok || data.cod !== "200") {
+    throw new Error(data.message || "Unable to fetch forecast for this city.");
+  }
+
+  return data;
+}
+
+async function fetchForecastByCoordinates(lat, lon) {
+  const url = `${FORECAST_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (!response.ok || data.cod !== "200") {
+    throw new Error(data.message || "Unable to fetch forecast for current location.");
+  }
+
+  return data;
+}
+
+function getFiveDayForecastItems(forecastList) {
+  const dailyMap = new Map();
+
+  forecastList.forEach((item) => {
+    const date = item.dt_txt.split(" ")[0];
+    if (!dailyMap.has(date)) {
+      dailyMap.set(date, item);
+      return;
+    }
+
+    const currentSaved = dailyMap.get(date);
+    const currentHourDiff = Math.abs(new Date(`${date}T12:00:00`).getHours() - Number(currentSaved.dt_txt.slice(11, 13)));
+    const newHourDiff = Math.abs(new Date(`${date}T12:00:00`).getHours() - Number(item.dt_txt.slice(11, 13)));
+    if (newHourDiff < currentHourDiff) {
+      dailyMap.set(date, item);
+    }
+  });
+
+  return Array.from(dailyMap.values()).slice(0, 5);
+}
+
+function renderForecastCards(forecastItems) {
+  if (!forecastItems || forecastItems.length === 0) {
+    forecastCards.innerHTML = `
+      <div class="rounded-2xl border border-slate-200 p-4 text-sm text-slate-500">
+        Search a city to view 5-day forecast.
+      </div>
+    `;
+    return;
+  }
+
+  forecastCards.innerHTML = forecastItems
+    .map((item) => {
+      const date = new Date(item.dt * 1000).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      });
+
+      return `
+        <article class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-sm font-semibold text-slate-700">${date}</p>
+          <div class="mt-2 flex items-center gap-2">
+            <img
+              src="https://openweathermap.org/img/wn/${item.weather[0].icon}.png"
+              alt="${item.weather[0].main}"
+              class="h-10 w-10"
+            />
+            <p class="text-sm text-slate-600">${item.weather[0].description}</p>
+          </div>
+          <p class="mt-3 text-sm text-slate-700">🌡 Temp: <span class="font-medium">${item.main.temp.toFixed(1)} C</span></p>
+          <p class="mt-1 text-sm text-slate-700">💧 Humidity: <span class="font-medium">${item.main.humidity}%</span></p>
+          <p class="mt-1 text-sm text-slate-700">💨 Wind: <span class="font-medium">${item.wind.speed} m/s</span></p>
+        </article>
+      `;
+    })
+    .join("");
+}
+
 async function handleCityWeatherSearch(city) {
   const cleanedCity = city.trim();
   if (!cleanedCity) {
@@ -206,8 +292,12 @@ async function handleCityWeatherSearch(city) {
   setStatus("Loading weather data...", "loading");
 
   try {
-    const weatherData = await fetchWeatherByCity(cleanedCity);
+    const [weatherData, forecastData] = await Promise.all([
+      fetchWeatherByCity(cleanedCity),
+      fetchForecastByCity(cleanedCity)
+    ]);
     setWeatherValues(weatherData);
+    renderForecastCards(getFiveDayForecastItems(forecastData.list));
     addRecentCity(weatherData.name);
     setStatus("Weather data loaded.", "success");
     return true;
@@ -242,8 +332,12 @@ locationBtn.addEventListener("click", async () => {
     async (position) => {
       try {
         const { latitude, longitude } = position.coords;
-        const weatherData = await fetchWeatherByCoordinates(latitude, longitude);
+        const [weatherData, forecastData] = await Promise.all([
+          fetchWeatherByCoordinates(latitude, longitude),
+          fetchForecastByCoordinates(latitude, longitude)
+        ]);
         setWeatherValues(weatherData);
+        renderForecastCards(getFiveDayForecastItems(forecastData.list));
         addRecentCity(weatherData.name);
         setStatus("Weather loaded for your current location.", "success");
       } catch (error) {
