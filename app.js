@@ -32,6 +32,7 @@ let currentUnit = "C";
 let lastWeatherData = null;
 let popupTimer = null;
 
+// Updates inline status text below the search controls.
 function setStatus(message, type = "info") {
   statusText.textContent = message;
   const statusClassMap = {
@@ -46,6 +47,7 @@ function setStatus(message, type = "info") {
     `mt-4 min-h-10 rounded-xl border px-3 py-2 text-sm sm:px-4 sm:text-base ${colorClasses}`;
 }
 
+// Lightweight custom popup for important errors/info without using alert().
 function showPopup(message, type = "error", title = "Error") {
   popupTitle.textContent = title;
   popupMessage.textContent = message;
@@ -72,6 +74,7 @@ function hidePopup() {
   popup.classList.remove("pointer-events-auto");
 }
 
+// Converts raw API/network error details into friendly user messages.
 function mapApiError(data, fallbackMessage) {
   const raw = (data && (data.message || data.error || data.reason)) || fallbackMessage;
   const message = String(raw || "").toLowerCase();
@@ -101,6 +104,7 @@ async function parseApiResponse(response) {
   return data;
 }
 
+// Renders current weather panel using the selected city/location result.
 function setWeatherValues(data) {
   lastWeatherData = data;
   cityOutput.textContent = `${data.name}, ${data.sys.country}`;
@@ -150,6 +154,7 @@ function setWeatherIcon(iconCode, mainCondition) {
   weatherIcon.classList.remove("hidden");
 }
 
+// Shows a warning when today's temperature is above 40 C.
 function updateExtremeAlert(tempCelsius) {
   if (tempCelsius > 40) {
     extremeAlert.classList.remove("hidden");
@@ -158,6 +163,7 @@ function updateExtremeAlert(tempCelsius) {
   extremeAlert.classList.add("hidden");
 }
 
+// Dynamically changes app background by weather condition.
 function setDynamicBackground(mainCondition = "") {
   const condition = mainCondition.toLowerCase();
   let gradientClass = "bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700";
@@ -173,6 +179,7 @@ function setDynamicBackground(mainCondition = "") {
   appBody.className = `${BASE_BODY_CLASS} ${gradientClass}`;
 }
 
+// Recent city history is persisted in localStorage for quick reuse.
 function getRecentCities() {
   const stored = localStorage.getItem(RECENT_CITIES_KEY);
   if (!stored) {
@@ -220,6 +227,7 @@ function renderRecentCities() {
   });
 }
 
+// Clears all weather output blocks after failed requests.
 function clearWeatherOutput() {
   cityOutput.textContent = "--";
   conditionOutput.textContent = "--";
@@ -280,6 +288,7 @@ async function fetchForecastByCoordinates(lat, lon) {
   return data;
 }
 
+// Picks one representative forecast item per day (up to 5 days).
 function getFiveDayForecastItems(forecastList) {
   const dailyMap = new Map();
 
@@ -301,6 +310,7 @@ function getFiveDayForecastItems(forecastList) {
   return Array.from(dailyMap.values()).slice(0, 5);
 }
 
+// Creates and injects forecast cards in a readable layout.
 function renderForecastCards(forecastItems) {
   if (!forecastItems || forecastItems.length === 0) {
     forecastCards.innerHTML = `
@@ -339,6 +349,7 @@ function renderForecastCards(forecastItems) {
     .join("");
 }
 
+// Main city-search flow: validate -> fetch weather/forecast -> update UI.
 async function handleCityWeatherSearch(city) {
   const cleanedCity = city.trim();
   if (!cleanedCity) {
