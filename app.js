@@ -1,5 +1,5 @@
 const API_KEY = "78433e7a51c26cb2b0376ef6e91d22d5";
-const BASE_URL = "https://api.weatherapi.com/v1/current.json";
+const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
 
 const weatherForm = document.getElementById("weather-form");
 const cityInput = document.getElementById("city");
@@ -16,22 +16,23 @@ function setStatus(message) {
 }
 
 function setWeatherValues(data) {
-  cityOutput.textContent = `${data.location.name}, ${data.location.country}`;
-  conditionOutput.textContent = data.current.condition.text;
-  tempOutput.textContent = `${data.current.temp_c} C`;
-  humidityOutput.textContent = `${data.current.humidity}%`;
-  windOutput.textContent = `${data.current.wind_kph} kph`;
+  cityOutput.textContent = `${data.name}, ${data.sys.country}`;
+  conditionOutput.textContent = data.weather[0].description;
+  tempOutput.textContent = `${data.main.temp} C`;
+  humidityOutput.textContent = `${data.main.humidity}%`;
+  windOutput.textContent = `${data.wind.speed} m/s`;
 }
 
 async function fetchWeather(city) {
-  const url = `${BASE_URL}?key=${API_KEY}&q=${encodeURIComponent(city)}&aqi=no`;
+  const url = `${BASE_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
   const response = await fetch(url);
+  const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error("Unable to fetch weather for this city.");
+  if (!response.ok || data.cod !== 200) {
+    throw new Error(data.message || "Unable to fetch weather for this city.");
   }
 
-  return response.json();
+  return data;
 }
 
 weatherForm.addEventListener("submit", async (event) => {
