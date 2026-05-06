@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Forecast</title>
+  </head>
+  <body>
+    <header>
+      <h1>Weather Forecast</h1>
+      <p>Weather API integration example</p>
+    </header>
+
+    <main>
+      <section>
+        <h2>Search Weather</h2>
+        <form id="weather-form">
+          <label for="city">City</label>
+          <input id="city" type="text" placeholder="Enter city name" required />
+          <button type="submit">Search</button>
+        </form>
+        <p id="status"></p>
+      </section>
+
+      <section>
+        <h2>Weather Result</h2>
+        <p>City: <span id="result-city">--</span></p>
+        <p>Condition: <span id="result-condition">--</span></p>
+        <p>Temperature: <span id="result-temp">--</span></p>
+        <p>Humidity: <span id="result-humidity">--</span></p>
+        <p>Wind: <span id="result-wind">--</span></p>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
