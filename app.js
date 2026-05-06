@@ -3,6 +3,7 @@ const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
 const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
 const RECENT_CITIES_KEY = "recentWeatherCities";
 const BASE_BODY_CLASS = "min-h-screen text-slate-900";
+const PROJECT_REPO_URL = "https://github.com/Vishnu6521/weather-forecast1";
 
 const weatherForm = document.getElementById("weather-form");
 const cityInput = document.getElementById("city");
@@ -468,3 +469,5 @@ updateUnitButtons();
 renderRecentCities();
 
 popupCloseBtn.addEventListener("click", hidePopup);
+
+console.info(`Project Repository: ${PROJECT_REPO_URL}`);

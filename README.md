@@ -3,6 +3,10 @@
 A responsive weather dashboard built with HTML, Tailwind CSS (CDN), and vanilla JavaScript.  
 It shows current weather, a 5-day forecast, recent city history, location-based weather, and clear in-UI error handling.
 
+## Project Repository
+
+- GitHub: [https://github.com/Vishnu6521/weather-forecast1](https://github.com/Vishnu6521/weather-forecast1)
+
 ## Features
 
 - Search weather by city name
