@@ -1,4 +1,4 @@
-const API_KEY = "78433e7a51c26cb2b0376ef6e91d22d5";
+const API_KEY = window.WEATHER_API_KEY || "";
 const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
 
 const weatherForm = document.getElementById("weather-form");
@@ -11,8 +11,18 @@ const tempOutput = document.getElementById("result-temp");
 const humidityOutput = document.getElementById("result-humidity");
 const windOutput = document.getElementById("result-wind");
 
-function setStatus(message) {
+function setStatus(message, type = "info") {
   statusText.textContent = message;
+  const statusClassMap = {
+    info: "border-slate-200 bg-slate-50 text-slate-700",
+    loading: "border-blue-200 bg-blue-50 text-blue-700",
+    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    error: "border-rose-200 bg-rose-50 text-rose-700"
+  };
+
+  const colorClasses = statusClassMap[type] || statusClassMap.info;
+  statusText.className =
+    `mt-4 min-h-10 rounded-xl border px-3 py-2 text-sm sm:px-4 sm:text-base ${colorClasses}`;
 }
 
 function setWeatherValues(data) {
@@ -38,19 +48,29 @@ async function fetchWeather(city) {
 weatherForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const city = cityInput.value.trim();
-  if (!city) {
-    setStatus("Please enter a city name.");
+  if (!API_KEY) {
+    setStatus("API key missing. Add WEATHER_API_KEY in config.js", "error");
     return;
   }
 
-  setStatus("Loading weather data...");
+  const city = cityInput.value.trim();
+  if (!city) {
+    setStatus("Please enter a city name.", "error");
+    return;
+  }
+
+  setStatus("Loading weather data...", "loading");
 
   try {
     const weatherData = await fetchWeather(city);
     setWeatherValues(weatherData);
-    setStatus("Weather data loaded.");
+    setStatus("Weather data loaded.", "success");
   } catch (error) {
-    setStatus(error.message);
+    cityOutput.textContent = "--";
+    conditionOutput.textContent = "--";
+    tempOutput.textContent = "--";
+    humidityOutput.textContent = "--";
+    windOutput.textContent = "--";
+    setStatus(error.message, "error");
   }
 });

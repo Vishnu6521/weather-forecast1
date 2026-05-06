@@ -4,33 +4,91 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Weather Forecast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            boxShadow: {
+              soft: "0 12px 40px -16px rgba(0, 0, 0, 0.4)"
+            }
+          }
+        }
+      };
+    </script>
   </head>
-  <body>
-    <header>
-      <h1>Weather Forecast</h1>
-      <p>Weather API integration example</p>
-    </header>
+  <body class="min-h-screen bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 text-slate-900">
+    <main class="mx-auto w-full max-w-5xl p-4 sm:p-6 lg:p-10">
+      <header class="mb-6 rounded-2xl border border-white/20 bg-white/15 p-5 text-white shadow-soft backdrop-blur-md sm:mb-8 sm:p-8">
+        <p class="mb-2 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-semibold tracking-wide sm:text-sm">
+          Creative Weather Dashboard
+        </p>
+        <h1 class="text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">Weather Forecast</h1>
+        <p class="mt-2 text-sm text-blue-100 sm:text-base">
+          Search any city and get a clean live snapshot of current weather conditions.
+        </p>
+      </header>
 
-    <main>
-      <section>
-        <h2>Search Weather</h2>
-        <form id="weather-form">
-          <label for="city">City</label>
-          <input id="city" type="text" placeholder="Enter city name" required />
-          <button type="submit">Search</button>
-        </form>
-        <p id="status"></p>
-      </section>
+      <section class="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
+        <article class="rounded-2xl bg-white p-4 shadow-soft sm:p-6 lg:col-span-4">
+          <h2 class="text-lg font-semibold sm:text-xl">Search Weather</h2>
+          <p class="mt-1 text-sm text-slate-600">Try cities like Hyderabad, London, Tokyo.</p>
 
-      <section>
-        <h2>Weather Result</h2>
-        <p>City: <span id="result-city">--</span></p>
-        <p>Condition: <span id="result-condition">--</span></p>
-        <p>Temperature: <span id="result-temp">--</span></p>
-        <p>Humidity: <span id="result-humidity">--</span></p>
-        <p>Wind: <span id="result-wind">--</span></p>
+          <form id="weather-form" class="mt-4 space-y-3">
+            <label for="city" class="block text-sm font-medium text-slate-700">City name</label>
+            <input
+              id="city"
+              type="text"
+              placeholder="Enter city name"
+              required
+              class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 sm:px-4 sm:py-3 sm:text-base"
+            />
+            <button
+              type="submit"
+              class="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 sm:py-3 sm:text-base"
+            >
+              Get Weather
+            </button>
+          </form>
+
+          <p
+            id="status"
+            class="mt-4 min-h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 sm:px-4 sm:text-base"
+          >
+            Enter a city and click "Get Weather".
+          </p>
+        </article>
+
+        <article class="rounded-2xl bg-white p-4 shadow-soft sm:p-6 lg:col-span-8">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="text-lg font-semibold sm:text-xl">Current Weather</h2>
+            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 sm:text-sm">Live</span>
+          </div>
+
+          <div class="mt-4 rounded-2xl bg-gradient-to-r from-blue-50 to-sky-50 p-4 sm:p-5">
+            <p class="text-xs uppercase tracking-wide text-slate-500 sm:text-sm">Location</p>
+            <p id="result-city" class="mt-1 text-xl font-bold text-slate-800 sm:text-2xl">--</p>
+            <p id="result-condition" class="mt-1 text-sm text-slate-600 sm:text-base">--</p>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+            <div class="rounded-2xl border border-slate-200 p-3 sm:p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Temperature</p>
+              <p id="result-temp" class="mt-1 text-lg font-semibold sm:text-xl">--</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 p-3 sm:p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Humidity</p>
+              <p id="result-humidity" class="mt-1 text-lg font-semibold sm:text-xl">--</p>
+            </div>
+            <div class="col-span-2 rounded-2xl border border-slate-200 p-3 sm:col-span-1 sm:p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Wind Speed</p>
+              <p id="result-wind" class="mt-1 text-lg font-semibold sm:text-xl">--</p>
+            </div>
+          </div>
+        </article>
       </section>
     </main>
+    <script src="./config.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
