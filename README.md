@@ -65,3 +65,10 @@ It shows current weather, a 5-day forecast, recent city history, location-based 
 
 - Keep `config.js` private. It is intentionally ignored in `.gitignore`.
 - Commit only safe files (`index.html`, `app.js`, `config.example.js`, `.gitignore`, `README.md`).
+
+## Troubleshooting
+
+- **Invalid API key (401):** verify the key in `config.js` and confirm it is activated in your OpenWeather account.
+- **City not found:** check spelling and avoid extra symbols in the city name.
+- **Location button not working:** make sure browser location permission is allowed.
+- **No data shown after edits:** hard refresh the page (`Ctrl/Cmd + Shift + R`) and try again.
