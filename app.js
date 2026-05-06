@@ -12,6 +12,11 @@ const recentWrapper = document.getElementById("recent-wrapper");
 const recentCitiesSelect = document.getElementById("recent-cities");
 const appBody = document.getElementById("app-body");
 const forecastCards = document.getElementById("forecast-cards");
+const popup = document.getElementById("popup");
+const popupContent = document.getElementById("popup-content");
+const popupTitle = document.getElementById("popup-title");
+const popupMessage = document.getElementById("popup-message");
+const popupCloseBtn = document.getElementById("popup-close");
 
 const cityOutput = document.getElementById("result-city");
 const conditionOutput = document.getElementById("result-condition");
@@ -25,6 +30,7 @@ const unitFBtn = document.getElementById("unit-f");
 
 let currentUnit = "C";
 let lastWeatherData = null;
+let popupTimer = null;
 
 function setStatus(message, type = "info") {
   statusText.textContent = message;
@@ -38,6 +44,61 @@ function setStatus(message, type = "info") {
   const colorClasses = statusClassMap[type] || statusClassMap.info;
   statusText.className =
     `mt-4 min-h-10 rounded-xl border px-3 py-2 text-sm sm:px-4 sm:text-base ${colorClasses}`;
+}
+
+function showPopup(message, type = "error", title = "Error") {
+  popupTitle.textContent = title;
+  popupMessage.textContent = message;
+  popup.classList.remove("hidden");
+  popup.classList.add("pointer-events-auto");
+
+  popupContent.className = "rounded-xl border bg-white p-4 shadow-lg";
+  if (type === "error") {
+    popupContent.classList.add("border-rose-200", "bg-rose-50");
+  } else if (type === "success") {
+    popupContent.classList.add("border-emerald-200", "bg-emerald-50");
+  } else {
+    popupContent.classList.add("border-blue-200", "bg-blue-50");
+  }
+
+  if (popupTimer) clearTimeout(popupTimer);
+  popupTimer = setTimeout(() => {
+    hidePopup();
+  }, 4500);
+}
+
+function hidePopup() {
+  popup.classList.add("hidden");
+  popup.classList.remove("pointer-events-auto");
+}
+
+function mapApiError(data, fallbackMessage) {
+  const raw = (data && (data.message || data.error || data.reason)) || fallbackMessage;
+  const message = String(raw || "").toLowerCase();
+
+  if (message.includes("invalid api key")) {
+    return "Invalid API key. Update WEATHER_API_KEY in config.js.";
+  }
+  if (message.includes("city not found")) {
+    return "City not found. Please check the spelling and try again.";
+  }
+  if (message.includes("nothing to geocode")) {
+    return "Please enter a valid city name.";
+  }
+  if (message.includes("failed to fetch") || message.includes("network")) {
+    return "Network issue. Please check internet connection and retry.";
+  }
+  return raw || fallbackMessage;
+}
+
+async function parseApiResponse(response) {
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+  return data;
 }
 
 function setWeatherValues(data) {
@@ -174,10 +235,10 @@ function clearWeatherOutput() {
 async function fetchWeatherByCity(city) {
   const url = `${BASE_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
   const response = await fetch(url);
-  const data = await response.json();
+  const data = await parseApiResponse(response);
 
   if (!response.ok || data.cod !== 200) {
-    throw new Error(data.message || "Unable to fetch weather for this city.");
+    throw new Error(mapApiError(data, "Unable to fetch weather for this city."));
   }
 
   return data;
@@ -186,10 +247,10 @@ async function fetchWeatherByCity(city) {
 async function fetchWeatherByCoordinates(lat, lon) {
   const url = `${BASE_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
   const response = await fetch(url);
-  const data = await response.json();
+  const data = await parseApiResponse(response);
 
   if (!response.ok || data.cod !== 200) {
-    throw new Error(data.message || "Unable to fetch weather for current location.");
+    throw new Error(mapApiError(data, "Unable to fetch weather for current location."));
   }
 
   return data;
@@ -198,10 +259,10 @@ async function fetchWeatherByCoordinates(lat, lon) {
 async function fetchForecastByCity(city) {
   const url = `${FORECAST_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
   const response = await fetch(url);
-  const data = await response.json();
+  const data = await parseApiResponse(response);
 
   if (!response.ok || data.cod !== "200") {
-    throw new Error(data.message || "Unable to fetch forecast for this city.");
+    throw new Error(mapApiError(data, "Unable to fetch forecast for this city."));
   }
 
   return data;
@@ -210,10 +271,10 @@ async function fetchForecastByCity(city) {
 async function fetchForecastByCoordinates(lat, lon) {
   const url = `${FORECAST_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
   const response = await fetch(url);
-  const data = await response.json();
+  const data = await parseApiResponse(response);
 
   if (!response.ok || data.cod !== "200") {
-    throw new Error(data.message || "Unable to fetch forecast for current location.");
+    throw new Error(mapApiError(data, "Unable to fetch forecast for current location."));
   }
 
   return data;
@@ -304,6 +365,7 @@ async function handleCityWeatherSearch(city) {
   } catch (error) {
     clearWeatherOutput();
     setStatus(error.message, "error");
+    showPopup(error.message, "error", "Weather Request Failed");
     return false;
   }
 }
@@ -311,7 +373,9 @@ async function handleCityWeatherSearch(city) {
 weatherForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!API_KEY) {
-    setStatus("API key missing. Add WEATHER_API_KEY in config.js", "error");
+    const message = "API key missing. Add WEATHER_API_KEY in config.js";
+    setStatus(message, "error");
+    showPopup(message, "error", "Configuration Error");
     return;
   }
   await handleCityWeatherSearch(cityInput.value);
@@ -319,11 +383,15 @@ weatherForm.addEventListener("submit", async (event) => {
 
 locationBtn.addEventListener("click", async () => {
   if (!API_KEY) {
-    setStatus("API key missing. Add WEATHER_API_KEY in config.js", "error");
+    const message = "API key missing. Add WEATHER_API_KEY in config.js";
+    setStatus(message, "error");
+    showPopup(message, "error", "Configuration Error");
     return;
   }
   if (!navigator.geolocation) {
-    setStatus("Geolocation is not supported in this browser.", "error");
+    const message = "Geolocation is not supported in this browser.";
+    setStatus(message, "error");
+    showPopup(message, "error", "Location Error");
     return;
   }
 
@@ -343,10 +411,20 @@ locationBtn.addEventListener("click", async () => {
       } catch (error) {
         clearWeatherOutput();
         setStatus(error.message, "error");
+        showPopup(error.message, "error", "Location Weather Failed");
       }
     },
-    () => {
-      setStatus("Location permission denied or unavailable.", "error");
+    (geoError) => {
+      let message = "Location permission denied or unavailable.";
+      if (geoError && geoError.code === 1) {
+        message = "Location permission denied. Please allow location access.";
+      } else if (geoError && geoError.code === 2) {
+        message = "Unable to detect location. Try again in an open area.";
+      } else if (geoError && geoError.code === 3) {
+        message = "Location request timed out. Please try again.";
+      }
+      setStatus(message, "error");
+      showPopup(message, "error", "Location Error");
     },
     { enableHighAccuracy: true, timeout: 10000 }
   );
@@ -373,3 +451,5 @@ unitFBtn.addEventListener("click", () => {
 
 updateUnitButtons();
 renderRecentCities();
+
+popupCloseBtn.addEventListener("click", hidePopup);
